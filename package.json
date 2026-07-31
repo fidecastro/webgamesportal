@@ -1,0 +1,19 @@
+{
+  "name": "webgamesportal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Web games portal — email auth, shared Turso players, game catalog",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node scripts/local-api.mjs",
+    "api": "node scripts/local-api.mjs",
+    "start": "node scripts/local-api.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.14.0"
+  }
+}
