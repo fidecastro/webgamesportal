@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web Games Portal</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">▶</span>
+        <div>
+          <h1>Web Games Portal</h1>
+          <p class="tagline">Sign in once. Play anywhere.</p>
+        </div>
+      </div>
+      <div id="user-bar" class="user-bar hidden" aria-live="polite">
+        <span id="welcome"></span>
+        <button type="button" id="logout-btn" class="btn btn-ghost">Log out</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section id="auth-panel" class="panel">
+        <h2>Enter with email</h2>
+        <p class="muted">
+          Your identity is stored in the shared player database (Turso / SQLite).
+          Nickname is optional — we will pick one if you skip it.
+        </p>
+        <form id="auth-form" novalidate>
+          <label class="field">
+            <span>Email</span>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              placeholder="you@example.com"
+              maxlength="254"
+            />
+          </label>
+          <label class="field">
+            <span>Nickname <em class="optional">(optional)</em></span>
+            <input
+              id="nickname"
+              name="nickname"
+              type="text"
+              autocomplete="nickname"
+              placeholder="ace_pilot"
+              maxlength="32"
+              pattern="[a-zA-Z0-9_-]+"
+            />
+          </label>
+          <p id="auth-error" class="error hidden" role="alert"></p>
+          <button type="submit" id="auth-submit" class="btn btn-primary">
+            Continue
+          </button>
+        </form>
+      </section>
+
+      <section id="catalog-panel" class="catalog hidden" aria-label="Game catalog">
+        <header class="catalog-header">
+          <h2>Choose a game</h2>
+          <p class="muted">One click launches the game with your portal identity.</p>
+        </header>
+        <!-- Titles present in static HTML for catalog render / smoke; JS wires Play buttons. -->
+        <div id="game-cards" class="cards">
+          <article class="card" data-game-id="river-raid-lite">
+            <span class="card-badge">Arcade</span>
+            <h3>River Raid Lite</h3>
+            <p>
+              Fly the river canyon, dodge and destroy. Classic vertical shooter, web edition.
+            </p>
+            <button type="button" class="btn btn-play" data-play>Play</button>
+          </article>
+          <article class="card" data-game-id="rtypeweb">
+            <span class="card-badge">Shooter</span>
+            <h3>R-Type Web</h3>
+            <p>
+              Side-scrolling space combat. Charge, unleash, survive the armada.
+            </p>
+            <button type="button" class="btn btn-play" data-play>Play</button>
+          </article>
+        </div>
+      </section>
+
+      <p id="boot-status" class="boot muted">Checking session…</p>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Shared auth via Turso · Handoff contract in
+        <a href="https://github.com/fidecastro/webgamesportal#auth-handoff-contract">README</a>
+      </p>
+    </footer>
+
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>
