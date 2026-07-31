@@ -6,7 +6,7 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, join, normalize, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import sessionHandler from "../api/auth/session.js";
@@ -45,7 +45,10 @@ function resolveStatic(urlPath) {
   let rel = decodeURIComponent(urlPath.split("?")[0]);
   if (rel === "/") rel = "/index.html";
   const full = normalize(join(ROOT, rel));
-  if (!full.startsWith(ROOT)) return null;
+  // Avoid classic prefix path issues (ROOT + "evil" when ROOT is not sep-terminated).
+  if (full !== ROOT && !full.startsWith(ROOT + sep)) {
+    return null;
+  }
   if (!existsSync(full)) return null;
   return full;
 }

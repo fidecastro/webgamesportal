@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { rmSync } from "node:fs";
+import { buildHandoffUrl } from "../lib/session.js";
 
 const ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 
@@ -207,7 +208,48 @@ async function main() {
     if (!json.valid) fail("verify.valid not true");
     if (json.player.id !== playerId) fail("verify player id mismatch");
     if (json.player.email !== email) fail("verify email mismatch");
+    if (!json.iat || json.iat <= 0) fail("verify missing handoff iat");
     ok("GET /api/auth/verify returns player claims");
+  }
+
+  // 5b. session cookie must NOT pass as handoff token
+  {
+    const sessionToken = cookie?.replace(/^portal_session=/, "");
+    if (!sessionToken) fail("missing session token for negative verify case");
+    const { res, json } = await req(
+      `/api/auth/verify?token=${encodeURIComponent(sessionToken)}`,
+    );
+    if (res.status !== 401) {
+      fail(
+        `session token as handoff expected 401 got ${res.status} ${JSON.stringify(json)}`,
+      );
+    }
+    ok("Session cookie rejected by /api/auth/verify (not a handoff token)");
+  }
+
+  // 5c. buildHandoffUrl includes documented launch params
+  {
+    const launch = buildHandoffUrl(
+      "https://river-raid-lite.vercel.app/",
+      { id: playerId, nickname: "smoke-nick", email },
+      handoffToken,
+    );
+    const u = new URL(launch);
+    for (const key of [
+      "portalPlayerId",
+      "portalNickname",
+      "portalEmail",
+      "portalToken",
+    ]) {
+      if (!u.searchParams.get(key)) fail(`buildHandoffUrl missing ${key}`);
+    }
+    if (u.searchParams.get("portalPlayerId") !== playerId) {
+      fail("buildHandoffUrl portalPlayerId mismatch");
+    }
+    if (u.searchParams.get("portalToken") !== handoffToken) {
+      fail("buildHandoffUrl portalToken mismatch");
+    }
+    ok("buildHandoffUrl emits portalPlayerId/Nickname/Email/Token");
   }
 
   // 6. invalid token

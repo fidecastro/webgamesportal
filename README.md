@@ -60,7 +60,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_players_nickname ON players(nickname);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_players_email ON players(email);
 ```
 
-A `scores` table is also ensured for local shared-DB friendliness; the portal **never writes scores**.
+The portal **does not create or own** a `scores` table. Game repos (e.g. rtypeweb) bootstrap scores with their own DDL (`value`, FK to `players`, leaderboard index). Keeping scores out of the portal avoids locking an empty shared Turso into a conflicting shape.
 
 ### Nickname policy
 
@@ -85,7 +85,7 @@ Session cookie: `portal_session` (HttpOnly, `SameSite=Lax`, `Secure` in producti
 base64url(json).base64url(hmac-sha256)
 ```
 
-Session JSON claims: `{ playerId, email, nickname, exp }` (default TTL 7 days).
+Session JSON claims: `{ typ: "session", playerId, email, nickname, exp }` (default TTL 7 days). Session cookies are **not** accepted by `/api/auth/verify`.
 
 ---
 
@@ -126,6 +126,7 @@ Payload JSON:
 
 ```json
 {
+  "typ": "handoff",
   "playerId": "…",
   "email": "user@example.com",
   "nickname": "ace",
@@ -133,6 +134,13 @@ Payload JSON:
   "exp": 1710001800
 }
 ```
+
+| Claim | Required | Notes |
+|-------|----------|-------|
+| `typ` | **Yes** | Must be `"handoff"`. Session tokens use `"session"` and are rejected by verify. |
+| `iat` | **Yes** | Issued-at (unix seconds). Missing/zero → invalid. |
+| `exp` | **Yes** | Expiry (unix seconds). Also capped to ~`HANDOFF_TTL_SEC` (30m) from `iat`. |
+| `playerId`, `email`, `nickname` | Yes | Identity claims; verify response prefers live DB values. |
 
 Signed with `PORTAL_HANDOFF_SECRET` if set, otherwise `PORTAL_SESSION_SECRET`.
 
